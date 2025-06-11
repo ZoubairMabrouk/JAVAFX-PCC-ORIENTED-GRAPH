@@ -9,7 +9,7 @@ import java.util.List;
 
 public class GraphNodeDAO {
     public GraphNode save(GraphNode node,int currentGrapheId) throws SQLException {
-        String sql = "INSERT INTO graph_nodes (x, y,graph_id,type) VALUES (?, ?,?,?)";
+        String sql = "INSERT INTO graph_nodes (x, y,graph_id,type,nom) VALUES (?, ?,?,?,?)";
         Connection conn = DBConnection.getInstance().getConnection();
         try (
              PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -17,6 +17,7 @@ public class GraphNodeDAO {
             stmt.setDouble(2, node.getY());
             stmt.setString(4,node.getType());
             stmt.setInt(3,currentGrapheId);
+            stmt.setString(5,node.getNom());
             int affectedRows = stmt.executeUpdate();
             if (affectedRows == 0) {
                 throw new SQLException("Échec de la création du nœud, aucune ligne affectée.");
@@ -44,6 +45,7 @@ public class GraphNodeDAO {
             while (rs.next()) {
                 nodes.add(new GraphNode(
                         rs.getString("id"),
+                        rs.getString("nom"),
                         rs.getDouble("x"),
                         rs.getDouble("y"),
                         rs.getString("type")
@@ -67,6 +69,7 @@ public class GraphNodeDAO {
             while (rs.next()) {
                 nodes.add(new GraphNode(
                         rs.getString("id"),
+                        rs.getString("nom"),
                         rs.getDouble("x"),
                         rs.getDouble("y"),
                         rs.getString("type")
@@ -91,6 +94,7 @@ public class GraphNodeDAO {
                 if (rs.next()) {
                     return new GraphNode(
                             String.valueOf(rs.getInt("id")),
+                            rs.getString("nom"),
                             rs.getDouble("x"),
                             rs.getDouble("y"),
                             rs.getString("type")
@@ -103,4 +107,29 @@ public class GraphNodeDAO {
     }
 
 
+    public GraphNode getNodeByName(String startName) {
+        String sql = "SELECT * FROM graph_nodes WHERE nom = ?";
+
+        try (Connection conn = DBConnection.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            stmt.setString(1, startName);
+
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return new GraphNode(
+                            String.valueOf(rs.getInt("id")),
+                            rs.getString("nom"),
+                            rs.getDouble("x"),
+                            rs.getDouble("y"),
+                            rs.getString("type")
+                    );
+                } else {
+                    return null; // Aucun nœud trouvé
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

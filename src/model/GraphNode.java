@@ -2,6 +2,7 @@ package model;
 
 public class GraphNode {
     private String id;
+    private String nom;
     private double x, y;
     private String type;
 
@@ -9,8 +10,9 @@ public class GraphNode {
         return type;
     }
 
-    public GraphNode(String id, double x, double y, String type) {
+    public GraphNode(String id,String nom, double x, double y, String type) {
         this.id = id;
+        this.nom = nom;
         this.x = x;
         this.y = y;
         this.type=type;
@@ -26,6 +28,14 @@ public class GraphNode {
 
     public double getX() {
         return x;
+    }
+
+    public String getNom() {
+        return nom;
+    }
+
+    public void setNom(String nom) {
+        this.nom = nom;
     }
 
     public double getY() {

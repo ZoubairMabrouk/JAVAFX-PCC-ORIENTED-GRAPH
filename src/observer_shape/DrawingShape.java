@@ -15,6 +15,7 @@ import factory_shape.LineShapeBuilder;
 import factory_shape.Shape;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.StackPane;
 
 import model.GraphEdge;
@@ -29,10 +30,10 @@ import java.util.Map;
 
 public class DrawingShape extends StackPane implements ShapeSelectionObserver {
     private GraphManager graphManager;
-        private final Canvas canvas;
-        private final GraphicsContext gc;
-        private final CommandInvoker invoker = new CommandInvoker();
-        private String selectedShapeType = null;
+    private final Canvas canvas;
+    private final GraphicsContext gc;
+    private final CommandInvoker invoker = new CommandInvoker();
+    private String selectedShapeType = null;
     private GraphNode startNode = null;
     private GraphNode endNode = null;
     private LoggerMethod currentLogger;
@@ -62,18 +63,23 @@ public class DrawingShape extends StackPane implements ShapeSelectionObserver {
                         }}
                 }else {
                     if (selectedShapeType != null) {
-                        GraphNode gn =new GraphNode("1",e.getX(),e.getY(),selectedShapeType) ;
-                        drawNode(gn);
+                        TextInputDialog nameDialog = new TextInputDialog("Noeud_" + (graphNodes.size() + 1));
+                        nameDialog.setTitle("Nom du nœud");
+                        nameDialog.setHeaderText("Entrez un nom pour ce nœud :");
+                        nameDialog.showAndWait().ifPresent(nodeName -> {
+                            GraphNode gn = new GraphNode("1",nodeName, e.getX(), e.getY(), selectedShapeType);
+                            drawNode(gn);
+                            try {
+                                nodeDAO.save(gn, graphManager.getCurrentGraphId());
+                            } catch (SQLException ex) {
+                                throw new RuntimeException(ex);
+                            }
+                        });
                         if (currentLogger != null) {
                             currentLogger.logger(new ShapeEntity(selectedShapeType, e.getX(), e.getY(), 0, 0));
                         }else{
                             loggerMethod.logger(new ShapeEntity(selectedShapeType,e.getX(),e.getY(),0,0));
 
-                        }
-                        try {
-                            nodeDAO.save(gn,graphManager.getCurrentGraphId());
-                        } catch (SQLException ex) {
-                            throw new RuntimeException(ex);
                         }
 
                     }
@@ -130,12 +136,14 @@ public class DrawingShape extends StackPane implements ShapeSelectionObserver {
             nodeMap.put(node.getId(), node);
         }
 
-        graphEdges = edgeDAO.getByGraphId(graphId, nodeMap);
+        List<GraphEdge> edges = edgeDAO.getByGraphId(graphId, nodeMap);
 
         for (GraphNode node : nodes) {
+            graphNodes.add(node);
             drawNode(node);
         }
-        for (GraphEdge edge : graphEdges){
+        for (GraphEdge edge : edges){
+            graphEdges.add(edge);
             drawedge(edge);
         }
     }
@@ -176,5 +184,17 @@ public class DrawingShape extends StackPane implements ShapeSelectionObserver {
 
     public void setLoggerMethod(LoggerMethod currentLogger) {
         this.currentLogger = currentLogger;
+    }
+
+    public GraphNode findNodeByName(String name) {
+        return graphNodes.stream().filter(n -> n.getId().equals(name)).findFirst().orElse(null);
+    }
+
+    public List<GraphNode> getGraphNodes() {
+        return graphNodes;
+    }
+
+    public List<GraphEdge> getGraphEdges() {
+        return graphEdges;
     }
 }
