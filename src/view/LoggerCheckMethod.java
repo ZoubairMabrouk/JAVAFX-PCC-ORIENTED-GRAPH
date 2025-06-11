@@ -4,8 +4,10 @@ import javafx.scene.control.RadioMenuItem;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Menu;
 
+import java.util.function.Consumer;
+
 public class LoggerCheckMethod extends Menu {
-    public LoggerCheckMethod() {
+    public LoggerCheckMethod(Consumer<String> onLoggerSelected) {
         super("Méthode");
 
         ToggleGroup group = new ToggleGroup();
@@ -19,5 +21,8 @@ public class LoggerCheckMethod extends Menu {
         console.setSelected(true);
 
         getItems().addAll(console, file, db);
+        console.setOnAction(e -> onLoggerSelected.accept("Console"));
+        file.setOnAction(e -> onLoggerSelected.accept("Fichier"));
+        db.setOnAction(e -> onLoggerSelected.accept("Base de données"));
     }
 }

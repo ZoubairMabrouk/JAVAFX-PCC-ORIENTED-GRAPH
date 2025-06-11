@@ -5,8 +5,8 @@ import java.sql.*;
 public class DBConnection {
     private static DBConnection instance;
     private Connection connection;
+    private final String url = "jdbc:mysql://localhost:3306/patterns?useSSL=false&serverTimezone=UTC";
 
-    private final String url = "jdbc:mysql://localhost:3306/patterns";
     private final String user = "root";
     private final String password = "";
 
@@ -26,7 +26,14 @@ public class DBConnection {
         return instance;
     }
 
-    public Connection getConnection() {
-        return connection;
-    }
+    public Connection getConnection() throws SQLException {
+        if (connection == null || connection.isClosed()) {
+            try {
+                this.connection = DriverManager.getConnection(url, user, password);
+            } catch (SQLException e) {
+                e.printStackTrace();
+                throw e;
+            }
+        }
+        return connection;}
 }

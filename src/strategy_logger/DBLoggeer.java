@@ -1,6 +1,7 @@
 package strategy_logger;
 
 import model.ShapeEntity;
+import strategy_logger.singleton_db.DBConnection;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -16,7 +17,9 @@ public class DBLoggeer implements LoggerMethod{
     @Override
     public void logger(ShapeEntity shape) {
         String sql = "INSERT INTO shapes (type, x, y, x2, y2) VALUES (?, ?, ?, ?, ?)";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+
+        try (Connection c = DBConnection.getInstance().getConnection();
+                PreparedStatement stmt = c.prepareStatement(sql)) {
             stmt.setString(1, shape.getType());
             stmt.setDouble(2, shape.getX());
             stmt.setDouble(3, shape.getY());
